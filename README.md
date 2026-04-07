@@ -1,4 +1,4 @@
-# ids568-milestone5-fatim
+# ids568-milestone5
 
 **MLOps Course — Milestone 5: LLM Inference Optimization with Batching and Caching**
 
