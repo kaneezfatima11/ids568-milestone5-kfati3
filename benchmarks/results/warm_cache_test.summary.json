@@ -1,0 +1,16 @@
+{
+  "total_requests": 100,
+  "successful": 100,
+  "errors": 0,
+  "error_rate": 0.0,
+  "cache_hits": 98,
+  "cache_hit_rate": 0.98,
+  "latency_p50_ms": 1.4667050018033478,
+  "latency_p90_ms": 1.6462419989693444,
+  "latency_p99_ms": 186.0656499993638,
+  "latency_mean_ms": 5.1368680499945185,
+  "latency_min_ms": 1.2442480001482181,
+  "latency_max_ms": 186.0656499993638,
+  "rps": 10,
+  "duration": 10
+}

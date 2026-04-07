@@ -18,18 +18,31 @@ This project implements a production-ready LLM inference API with:
 ```
 ids568-milestone5-fatim/
 ├── src/
+│   ├── __init__.py
 │   ├── server.py          # Main FastAPI inference server
 │   ├── batching.py        # Dynamic batching logic
 │   ├── caching.py         # Cache implementation
 │   └── config.py          # Configuration management
 ├── benchmarks/
+│   ├── __init__.py
 │   ├── run_benchmarks.py  # Full benchmark suite
 │   ├── load_generator.py  # Async load generator
-│   └── results/           # Raw benchmark data
+│   └── results/
+│       ├── benchmark_summary.json
+│       ├── load_test_rps10.csv
+│       ├── load_test_rps50.csv
+│       ├── load_test_rps100.csv
+│       ├── cold_cache_test.csv
+│       └── warm_cache_test.csv
 ├── analysis/
-│   ├── performance_report.pdf   # Performance analysis
-│   ├── governance_memo.pdf      # Governance memo
-│   └── visualizations/          # Charts
+│   ├── performance_report.pdf
+│   ├── governance_memo.pdf
+│   └── visualizations/
+│       ├── chart1_single_vs_batch.png
+│       ├── chart2_cache_performance.png
+│       ├── chart3_throughput_load.png
+│       └── chart4_cache_hit_rate_over_time.png
+├── .gitignore
 ├── requirements.txt
 └── README.md
 ```
@@ -45,7 +58,7 @@ ids568-milestone5-fatim/
 
 ### Install Dependencies
 ```bash
-python -m venv venv
+python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 ```
@@ -62,10 +75,10 @@ All settings are via environment variables:
 | `DEVICE` | `cpu` | `cpu` or `cuda` |
 | `MAX_NEW_TOKENS` | `64` | Max tokens generated |
 | `MAX_BATCH_SIZE` | `8` | Max requests per batch |
-| `BATCH_TIMEOUT_MS` | `50` | Batch flush timeout |
+| `BATCH_TIMEOUT_MS` | `50` | Batch flush timeout (ms) |
 | `CACHE_BACKEND` | `memory` | `memory` or `redis` |
 | `CACHE_TTL_SECONDS` | `300` | Cache expiration time |
-| `CACHE_MAX_ENTRIES` | `1000` | Max cache entries |
+| `CACHE_MAX_ENTRIES` | `1000` | Max cache entries (LRU) |
 
 ---
 
@@ -99,12 +112,66 @@ curl -X POST http://localhost:8000/generate \
 
 ## Running Benchmarks
 ```bash
-# Quick run (skips throughput tests)
-python benchmarks/run_benchmarks.py --skip-throughput
+# Low load - 10 RPS for 20 seconds
+python3 benchmarks/load_generator.py \
+  --url http://localhost:8000 \
+  --rps 10 --duration 20 \
+  --output benchmarks/results/load_test_rps10.csv
 
-# Full benchmark suite
-python benchmarks/run_benchmarks.py --url http://localhost:8000 --rps-levels 10 50 100
+# Medium load - 50 RPS for 20 seconds
+python3 benchmarks/load_generator.py \
+  --url http://localhost:8000 \
+  --rps 50 --duration 20 \
+  --output benchmarks/results/load_test_rps50.csv
+
+# High load - 100 RPS for 20 seconds
+python3 benchmarks/load_generator.py \
+  --url http://localhost:8000 \
+  --rps 100 --duration 20 \
+  --output benchmarks/results/load_test_rps100.csv
+
+# Cold cache test
+curl -X DELETE http://localhost:8000/cache
+python3 benchmarks/load_generator.py \
+  --url http://localhost:8000 \
+  --rps 10 --duration 10 \
+  --repeat-fraction 0.5 \
+  --output benchmarks/results/cold_cache_test.csv
+
+# Warm cache test
+python3 benchmarks/load_generator.py \
+  --url http://localhost:8000 \
+  --rps 10 --duration 10 \
+  --repeat-fraction 0.5 \
+  --output benchmarks/results/warm_cache_test.csv
 ```
+
+---
+
+## Real Benchmark Results
+
+### Cold vs Warm Cache
+| Metric | Cold Cache | Warm Cache |
+|---|---|---|
+| Total Requests | 100 | 100 |
+| Cache Hit Rate | 74% | 98% |
+| Mean Latency | 70.72ms | 5.14ms |
+| P50 Latency | 1.54ms | 1.47ms |
+| P90 Latency | 290.84ms | 1.65ms |
+| P99 Latency | 509.69ms | 186.07ms |
+
+### Throughput at Multiple Load Levels
+| Load | RPS | Requests | Cache Hit Rate | Mean Latency | P99 Latency |
+|---|---|---|---|---|---|
+| Low | 10 | 200 | 87% | 37.88ms | 471.39ms |
+| Medium | 50 | 1000 | 100% | 1.30ms | 1.72ms |
+| High | 100 | 2000 | 100% | 1.12ms | 1.55ms |
+
+### Key Findings
+- Warm cache reduces mean latency from **70.72ms to 5.14ms** — a **13.8x speedup**
+- At 100 RPS with warm cache, mean latency is only **1.12ms**
+- Cache hit rate reaches **98-100%** at medium and high load levels
+- Zero errors across all load levels demonstrating system stability
 
 ---
 
@@ -125,6 +192,22 @@ python -m py_compile src/config.py && echo "✓ config.py OK"
 # PII check (should return nothing)
 grep -n "user_id\|user_name\|email\|username" src/caching.py || echo "✓ No PII found"
 ```
+
+---
+
+## Design Decisions
+
+### Batching Strategy: Hybrid (Size OR Timeout)
+Flushes when MAX_BATCH_SIZE requests accumulate OR BATCH_TIMEOUT_MS elapses — whichever comes first. Ensures high-load batches fill quickly while low-load requests are not held indefinitely.
+
+### Cache Key Design: Privacy-First
+```
+key = SHA256(json({"prompt": p, "model": m, "max_new_tokens": n, "temperature": t}))
+```
+No user identifiers ever appear in keys or values. Deterministic and one-way.
+
+### Concurrency: asyncio Throughout
+All shared state protected by asyncio.Lock. Model inference runs in thread pool via run_in_executor() to avoid blocking the event loop.
 
 ---
 
