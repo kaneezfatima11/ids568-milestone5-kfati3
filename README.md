@@ -138,7 +138,7 @@ python3 benchmarks/load_generator.py \
   --repeat-fraction 0.5 \
   --output benchmarks/results/cold_cache_test.csv
 
-# Warm cache test
+# Warm cache test (run immediately after cold)
 python3 benchmarks/load_generator.py \
   --url http://localhost:8000 \
   --rps 10 --duration 10 \
@@ -189,7 +189,7 @@ python -m py_compile src/batching.py && echo "✓ batching.py OK"
 python -m py_compile src/caching.py && echo "✓ caching.py OK"
 python -m py_compile src/config.py && echo "✓ config.py OK"
 
-# PII check (should return nothing)
+# PII check
 grep -n "user_id\|user_name\|email\|username" src/caching.py || echo "✓ No PII found"
 ```
 
