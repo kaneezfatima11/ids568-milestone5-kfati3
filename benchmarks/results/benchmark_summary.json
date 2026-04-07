@@ -1,0 +1,29 @@
+{
+  "single_vs_batch": {
+    "single_latency_ms": {"mean": 210.4, "min": 185.2, "max": 298.1, "n": 10},
+    "batched_latency_ms": {"mean": 185.7, "min": 162.3, "max": 245.8, "n": 10}
+  },
+  "cache_comparison": {
+    "cold_cache_latency_ms": {"mean": 245.3, "n": 5},
+    "warm_cache_latency_ms": {"mean": 0.09, "n": 5, "hits": 5}
+  },
+  "throughput": {
+    "rps_10": {"total_requests": 200, "successful": 200, "errors": 0, "error_rate": 0.0, "cache_hits": 62, "cache_hit_rate": 0.31, "latency_p50_ms": 112, "latency_p90_ms": 160, "latency_p99_ms": 225, "latency_mean_ms": 121, "rps_target": 10},
+    "rps_50": {"total_requests": 1000, "successful": 990, "errors": 10, "error_rate": 0.01, "cache_hits": 308, "cache_hit_rate": 0.31, "latency_p50_ms": 285, "latency_p90_ms": 405, "latency_p99_ms": 600, "latency_mean_ms": 302, "rps_target": 50},
+    "rps_100": {"total_requests": 2000, "successful": 1760, "errors": 240, "error_rate": 0.12, "cache_hits": 546, "cache_hit_rate": 0.31, "latency_p50_ms": 695, "latency_p90_ms": 1100, "latency_p99_ms": 2100, "latency_mean_ms": 751, "rps_target": 100}
+  },
+  "cache_hitrate": {
+    "snapshots": [
+      {"batch": 1, "requests_so_far": 5, "cache_hits": 0, "cache_misses": 5, "cache_hit_rate": 0.0, "cache_size": 5},
+      {"batch": 2, "requests_so_far": 10, "cache_hits": 1, "cache_misses": 9, "cache_hit_rate": 0.1, "cache_size": 9},
+      {"batch": 3, "requests_so_far": 15, "cache_hits": 3, "cache_misses": 12, "cache_hit_rate": 0.2, "cache_size": 12},
+      {"batch": 4, "requests_so_far": 20, "cache_hits": 6, "cache_misses": 14, "cache_hit_rate": 0.3, "cache_size": 14},
+      {"batch": 5, "requests_so_far": 25, "cache_hits": 9, "cache_misses": 16, "cache_hit_rate": 0.36, "cache_size": 15},
+      {"batch": 6, "requests_so_far": 30, "cache_hits": 12, "cache_misses": 18, "cache_hit_rate": 0.4, "cache_size": 16},
+      {"batch": 7, "requests_so_far": 35, "cache_hits": 16, "cache_misses": 19, "cache_hit_rate": 0.457, "cache_size": 17},
+      {"batch": 8, "requests_so_far": 40, "cache_hits": 19, "cache_misses": 21, "cache_hit_rate": 0.475, "cache_size": 17},
+      {"batch": 9, "requests_so_far": 45, "cache_hits": 22, "cache_misses": 23, "cache_hit_rate": 0.489, "cache_size": 18},
+      {"batch": 10, "requests_so_far": 50, "cache_hits": 26, "cache_misses": 24, "cache_hit_rate": 0.52, "cache_size": 18}
+    ]
+  }
+}
